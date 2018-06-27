@@ -1,1 +1,5 @@
-
+name: Jenkins
+description: |
+  Jenkins CI server (LTS)
+version: blueocean
+category: Continuous Integration
