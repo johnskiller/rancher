@@ -1,4 +1,0 @@
-.catalog:
-  name: Jenkins
-  version: blueocean
-  description: Jenkins CI Server for Kubernetes
