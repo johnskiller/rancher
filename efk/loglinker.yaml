@@ -1,0 +1,72 @@
+kind: DaemonSet
+apiVersion: extensions/v1beta1
+metadata:
+  name: log-linker
+  namespace: log-linker
+  labels:
+    app: log-linker
+spec:
+  selector:
+    matchLabels:
+      app: log-linker
+  template:
+    metadata:
+      labels:
+        app: log-linker
+    spec:
+      containers:
+      - name: log-linker
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities: {}
+          privileged: true
+        image: registry.gitlab.rotate-it.be/kris/loglinker:latest
+        command:
+        - /log-linker.sh
+        volumeMounts:
+        - name: var-lib-docker
+          mountPath: /var/lib/docker
+        - name: var-log
+          mountPath: /var/log
+      volumes:
+      - name: var-log
+        hostPath:
+          path: /var/log
+      - name: var-lib-docker
+        hostPath:
+          path: /var/lib/docker
+
+
+
+initContainers:
+      - args:
+        - mkdir -p /var/log/containers; mkdir -p /var/log/pods
+        command:
+        - /bin/sh
+        - -c
+        image: busybox
+        imagePullPolicy: Always
+        name: mk-log-dir
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities: {}
+          privileged: true
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+        stdin: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        tty: true
+        volumeMounts:
+        - mountPath: /var/log
+          name: var-log
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - hostPath:
+          path: /var/log
+          type: ""
+        name: var-log
