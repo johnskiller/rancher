@@ -1,11 +1,12 @@
+apiVersion: apps/v1
 kind: DaemonSet
-apiVersion: extensions/v1beta1
 metadata:
-  name: log-linker
-  namespace: log-linker
   labels:
     app: log-linker
+  name: log-linker
+  namespace: log-linker
 spec:
+  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app: log-linker
@@ -15,30 +16,24 @@ spec:
         app: log-linker
     spec:
       containers:
-      - name: log-linker
+      - command:
+        - /log-linker.sh
+        image: registry.gitlab.rotate-it.be/kris/loglinker:latest
+        imagePullPolicy: Always
+        name: log-linker
+        resources: {}
         securityContext:
           allowPrivilegeEscalation: true
-          capabilities: {}
           privileged: true
-        image: registry.gitlab.rotate-it.be/kris/loglinker:latest
-        command:
-        - /log-linker.sh
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
         volumeMounts:
-        - name: var-lib-docker
-          mountPath: /var/lib/docker
-        - name: var-log
-          mountPath: /var/log
-      volumes:
-      - name: var-log
-        hostPath:
-          path: /var/log
-      - name: var-lib-docker
-        hostPath:
-          path: /var/lib/docker
-
-
-
-initContainers:
+        - mountPath: /var/lib/docker
+          name: var-lib-docker
+        - mountPath: /var/log
+          name: var-log
+      dnsPolicy: ClusterFirst
+      initContainers:
       - args:
         - mkdir -p /var/log/containers; mkdir -p /var/log/pods
         command:
@@ -70,3 +65,7 @@ initContainers:
           path: /var/log
           type: ""
         name: var-log
+      - hostPath:
+          path: /var/lib/docker
+          type: ""
+        name: var-lib-docker

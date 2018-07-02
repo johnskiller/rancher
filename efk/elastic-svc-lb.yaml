@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:  
+  labels:
+    app: elasticsearch
+  name: elastic-svc-lb
+  annotations:
+        service.beta.kubernetes.io/aws-load-balancer-internal: 0.0.0.0/0
+  namespace: efk
+spec:
+  ports:
+  - name: http
+    port: 9200
+    protocol: TCP
+    targetPort: http
+  - name: transport
+    port: 9300
+    protocol: TCP
+    targetPort: transport
+  selector:
+    app: elasticsearch
+    component: master
+    release: efk
+  sessionAffinity: None
+  type: LoadBalancer
